@@ -1,22 +1,30 @@
 const router = require('express').Router()
+const Accounts = require('./accounts-model')
+const {
+  checkAccountPayload,
+  checkAccountId,
+  checkAccountNameUnique
+} = require('./accounts-middleware')
+
+
 
 router.get('/', (req, res, next) => {
   // DO YOUR MAGIC
 })
 
-router.get('/:id', (req, res, next) => {
+router.get('/:id', checkAccountId, (req, res, next) => {
   // DO YOUR MAGIC
 })
 
-router.post('/', (req, res, next) => {
+router.post('/', checkAccountPayload, checkAccountNameUnique, (req, res, next) => {
   // DO YOUR MAGIC
 })
 
-router.put('/:id', (req, res, next) => {
+router.put('/:id', checkAccountId, checkAccountPayload, (req, res, next) => {
   // DO YOUR MAGIC
 });
 
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', checkAccountId, (req, res, next) => {
   // DO YOUR MAGIC
 })
 
