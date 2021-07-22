@@ -7,7 +7,7 @@ const getAll = () => {
 
 const getById = id => {
   // DO YOUR MAGIC
-  return db("accounts").where({ id }).first();
+  return db("accounts").where('id', id);
 }
 
 const create = account => {
@@ -17,6 +17,7 @@ const create = account => {
     .then(ids => {
       return getById(ids[0])
     })
+    .catch(err => console.log(err))
 }
 
 const updateById = (id, account) => {
@@ -27,7 +28,8 @@ const updateById = (id, account) => {
     // eslint-disable-next-line no-unused-vars
     .then((rows) => {
       return getById(id)
-    });
+    })
+    .catch(err => console.log(err));
 }
 
 const deleteById = id => {
