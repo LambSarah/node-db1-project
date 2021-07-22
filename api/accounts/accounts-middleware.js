@@ -1,6 +1,6 @@
 const Accounts = require('./accounts-model')
 
-exports.checkAccountPayload = async (req, res, next) => {
+const checkAccountPayload = async (req, res, next) => {
   // DO YOUR MAGIC
   try {
     const changes = req.body
@@ -35,7 +35,7 @@ exports.checkAccountPayload = async (req, res, next) => {
   }
 }
 
-exports.checkAccountNameUnique = async (req, res, next) => {
+const checkAccountNameUnique = async (req, res, next) => {
   // DO YOUR MAGIC
   try {
     const name = req.body.name
@@ -52,25 +52,26 @@ exports.checkAccountNameUnique = async (req, res, next) => {
   } catch (err) {
     next(err)
   }
+}
 
-
-  exports.checkAccountId = async (req, res, next) => {
-    // DO YOUR MAGIC
-    try {
-      const { id } = req.params.id
-      const account = await Accounts.getById(id)
-      if (account) {
-        req.account = account
-        next()
-      } else {
-        next({
-          status: 404,
-          message: 'account not found'
-        })
-      }
-    } catch (err) {
-      next(err)
+const checkAccountId = async (req, res, next) => {
+  try {
+    console.log(req.params)
+    const account = await Accounts.getById(req.params.id)
+    console.log(account)
+    if (account) {
+      req.account = account
+      next()
+    } else {
+      res.status(404).json({ message: 'account not found' })
     }
-
+  } catch (err) {
+    next(err)
   }
+}
+
+module.exports = {
+  checkAccountId,
+  checkAccountNameUnique,
+  checkAccountPayload
 }

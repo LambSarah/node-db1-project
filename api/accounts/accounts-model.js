@@ -1,4 +1,4 @@
-const db = require('../data/db-config.db3')
+const db = require('../../data/db-config')
 
 const getAll = () => {
   // DO YOUR MAGIC
@@ -7,9 +7,7 @@ const getAll = () => {
 
 const getById = id => {
   // DO YOUR MAGIC
-  return db('accounts')
-    .where({ id })
-    .first()
+  return db("accounts").where({ id }).first();
 }
 
 const create = account => {
@@ -26,9 +24,10 @@ const updateById = (id, account) => {
   return db('accounts')
     .where({ id })
     .update(account)
-    .then(rows => {
+    // eslint-disable-next-line no-unused-vars
+    .then((rows) => {
       return getById(id)
-    })
+    });
 }
 
 const deleteById = id => {
