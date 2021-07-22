@@ -7,6 +7,7 @@ const getAll = () => {
 
 const getById = id => {
   // DO YOUR MAGIC
+  console.log('model--id:', id)
   return db("accounts").where('id', id);
 }
 
