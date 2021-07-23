@@ -7,18 +7,12 @@ const getAll = () => {
 
 const getById = id => {
   // DO YOUR MAGIC
-  console.log('model--id:', id)
-  return db("accounts").where('id', id);
+  return db("accounts").where('id', id).first();
 }
 
-const create = account => {
-  // DO YOUR MAGIC
-  return db('accounts')
-    .insert(account)
-    .then(ids => {
-      return getById(ids[0])
-    })
-    .catch(err => console.log(err))
+const create = async account => {
+  const [id] = await db('accounts').insert(account)
+  return getById(id)
 }
 
 const updateById = (id, account) => {

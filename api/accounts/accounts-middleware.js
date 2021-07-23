@@ -1,112 +1,69 @@
 const Accounts = require('./accounts-model')
+const db = require('../../data/db-config')
 
-const checkAccountPayload = async (req, res, next) => {
+const checkAccountPayload = (req, res, next) => {
   // DO YOUR MAGIC
-  try {
-    console.log('req method: ', req.method)
-    const changes = req.body
-    const name = changes.name
-    const trimmedName = name.trimStart();
+  const error = { status: 400 }
+  const { name, budget } = req.body
+  console.log('checking if all reqd fields included')
+  if (name === undefined || budget === undefined) {
+    console.log('Error thrown: name and budget are required')
+    error.message = 'name and budget are required'
+  } else if (typeof name !== 'string') {
+    console.log("Error thrown: name of account must be string")
+    error.message = 'name of account must be a string'
+  } else if (name.trim().length < 3 || name.trim().length > 100) {
+    error.message = 'name of account must be between 3 and 100'
+  } else if (typeof budget !== 'number' || isNaN(budget)) {
+    error.message = 'budget of account must be a number'
+  } else if (budget < 0 || budget > 1000000) {
+    error.message = 'budget of account is too large or too small'
+  }
 
-    console.log('checking if all reqd fields included')
-    if (!changes.name || !changes.budget) {
-      console.log('Error thrown: name and budget are required')
-      next({
-        status: 400,
-        message: 'name and budget are required'
-      })
-    }
-    console.log('checking if name is a string')
-    if (typeof changes.name !== 'string') {
-      console.log("Error thrown: name of account must be string")
-      next({
-        status: 400,
-        message: 'name of account must be a string'
-      })
-    }
-    console.log('checking if name is correct length')
-    if (trimmedName.length < 3 || trimmedName.length > 100) {
-      console.log('Error thrown:. name of acct must be 3-100')
-      next({
-        status: 400,
-        message: 'name of account must be between 3 and 100'
-      })
-    }
-    console.log('checking if budget is a number')
-    if (Number.isNaN(changes.budget)) {
-      console.log('Error thrown: NaN')
-      next({
-        status: 400,
-        message: 'budget of account must be a number',
-      })
-    }
-    console.log('checking if budget is right size')
-
-    if (changes.budget < 0 || changes.budget > 1000000) {
-      console.log('ErrorThrown: 0-1000000')
-      next({
-        status: 400,
-        message: 'budget of account is too large or too small'
-      })
-    }
-    console.log('passed payload check')
+  if (error.message) {
+    next(error)
+  } else {
     next()
+  }
+}
+
+const checkAccountNameUnique = async (req, res, next) => {
+  try {
+    console.log('Checking uniqueNameReq')
+    const existing = await db('accounts')
+      .where('name', req.body.name.trim())
+      .first()
+
+    if (existing) {
+      next({ status: 400, message: 'that name is taken' })
+    } else {
+      next()
+    }
   } catch (err) {
     next(err)
   }
 }
 
-const checkAccountNameUnique = async (req, res, next) => {
-  // DO YOUR MAGIC
-  console.log('Checking uniqueNameReq')
-
-  let name = req.body.name
-  name = name.trim()
-  console.log('trimmed name:', name)
-  Accounts.getAll()
-    .then(accounts => {
-      console.log('accounts: ', accounts)
-      let matches = accounts.map(account => account.name.trim(account.name) === name)
-      // const matches = accounts.map(account => account.name === name)
-      if (matches.length === 0) {
-        console.log('passed unique name check')
-        next()
-      } else {
-        next({
-          status: 400,
-          message: 'that name is taken'
-        })
-      }
-    }
-    ).catch(err => {
-      next(err)
-    })
-}
-
-const checkAccountId = (req, res, next) => {
+const checkAccountId = async (req, res, next) => {
   console.log('Checking account id')
   console.log('params:', req.params)
   const id = req.params.id
   console.log('id:', id)
-
-  Accounts.getById(id)
-    .then(account => {
-      if (account !== []) {
-        console.log('account:', account)
-        req.account = account
-        next()
-      } else {
-        next({
-          status: 404,
-          message: 'account not found'
-        })
-      }
-    }).catch(err => {
-      next(err)
+  try {
+    const account = await Accounts.getById(req.params.id)
+    if (!account) {
+      next({
+        status: 404,
+        message: 'account not found'
+      })
+    } else {
+      res.account = account
+      next()
     }
-    )
+  } catch (err) {
+    next(err)
+  }
 }
-
 
 const notFound = (req, res, next) => { // eslint-disable-line
   res.status(404).json({

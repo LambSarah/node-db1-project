@@ -24,58 +24,52 @@ router.get('/', (req, res, next) => {
 })
 
 
-router.get('/:id', checkAccountId, (req, res, next) => {
-  // DO YOUR MAGIC'
-  console.log('reqParamsId:', req.params.id)
-  const { id } = req.params.id
-  console.log('router--id:', id)
-  Accounts.getById(req.params.id)
-    .then(account => {
-      account ?
-        res.status(200).json(account)
-        :
-        next()
-    })
-    .catch(err => {
-      next(err)
-    })
+router.get('/:id', checkAccountId, async (req, res, next) => {
+  try {
+    const account = await Accounts.getById(req.params.id)
+    res.json(account)
+  } catch (err) {
+    next(err)
+  }
 })
 
+router.post('/', checkAccountPayload, checkAccountNameUnique, async (req, res, next) => {
+  try {
+    console.log('creating account with Accounts.create(req.body)')
+    console.log('req.body:', req.body)
+    const name = req.body.name
 
-router.post('/', checkAccountPayload, checkAccountNameUnique, (req, res, next) => {
-  // DO YOUR MAGIC
-  console.log('creating account with Accounts.create(req.body)')
-  console.log('req.body:', req.body)
-  const name = req.body.name
-  Accounts.create({
-    name: name.trim(),
-    budget: req.body.budget
-  })
-    .then(newAccount => {
-      console.log('awaited create call: ', newAccount)
-      if (newAccount) {
-        res.status(201).json(newAccount)
-        console.log('getting newAccount details')
-      } else {
-        res.status(404).json({
-          message: 'could not create account'
-        })
-      }
-    }).catch(err => {
-      next(err)
+    const newAccount = await Accounts.create({
+      name: name.trim(),
+      budget: req.body.budget
     })
+    res.status(201).json(newAccount)
+  } catch (err) {
+    next(err)
+  }
 })
-/*
-router.put('/:id', checkAccountId, checkAccountPayload, (req, res, next) => {
-  // DO YOUR MAGIC
-});
 
-router.delete('/:id', checkAccountId, (req, res, next) => {
-  // DO YOUR MAGIC
+router.put('/:id', checkAccountId, checkAccountPayload, checkAccountNameUnique, async (req, res, next) => {
+  const updated = await Accounts.updateById(req.params.id, req.body)
+  res.json(updated)
+}
+);
+
+router.delete('/:id', checkAccountId, async (req, res, next) => {
+  try {
+    await Accounts.deleteById(req.params.id)
+    res.json(req.account)
+  } catch (err) {
+    next(err)
+  }
 })
 
 router.use((err, req, res, next) => { // eslint-disable-line
-  // DO YOUR MAGIC
+  res.status(err.status || 500).json({
+    message: err.message
+  })
 })
- */
-module.exports = router;
+
+
+
+module.exports = router
